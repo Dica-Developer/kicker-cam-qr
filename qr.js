@@ -3,7 +3,12 @@ var Image = Canvas.Image;
 var qrcode = require('jsqrcode')(Canvas);
 var exec = require('child_process').exec;
 
-module.exports = {
+var canvas = new Canvas();
+
+function QrReader() {
+}
+
+QrReader.prototype = {
   findPlayer: function (item, cb) {
     console.time('find player');
     var image = item[0];
@@ -15,43 +20,43 @@ module.exports = {
     var playerPosition = item[6];
     var qrCodeSizeX = 249;
     var qrCodeSizeY = 249;
-    var canvas = new Canvas();
     canvas.width = qrCodeSizeX;
     canvas.height = qrCodeSizeY;
+
+    var result = null;
+
     for (var y = sy; y < (sy + dy); y = y + 5) {
       for (var x = sx; x < (sx + dx); x = x + 5) {
         try {
           canvas.getContext('2d').drawImage(image, x, y, qrCodeSizeX, qrCodeSizeY, 0, 0, canvas.width, canvas.height);
-          var result = qrcode.decode(canvas);
+          result = qrcode.decode(canvas);
           console.timeEnd('find player');
-          this.cb(result, x, y, playerColor, playerPosition);
-          return;
+          if(result){
+            break;
+          }
         } catch (e) {
           //console.log('unable to read qr code:', e);
         }
       }
+      if(result){
+        break;
+      }
+    }
+    if(result){
+      cb(result, x, y, playerColor, playerPosition);
     }
     console.timeEnd('find player');
   },
 
-  cb: function (playerName, x, y, playerColor, playerPosition) {},
-
-  loadImage: function (filename) {
+  loadImage: function (filename, cb) {
     var _this = this;
     var image = new Image();
     image.onload = function () {
-      setTimeout(function () {
-        _this.findPlayer([image, 0, 0, 200, 200, 'blue', 'offense']);
-      }, 100);
-      setTimeout(function () {
-        _this.findPlayer([image, image.width - 400, 0, 200, 200, 'blue', 'defense']);
-      }, 200);
-      setTimeout(function () {
-        _this.findPlayer([image, 0, image.height - 400, 200, 200, 'red', 'defense']);
-      }, 300);
-      setTimeout(function () {
-        _this.findPlayer([image, image.width - 400, image.height - 400, 200, 200, 'red', 'offense']);
-      }, 400);
+      _this.findPlayer([image, 0, 0, 200, 200, 'blue', 'offense'], cb);
+      _this.findPlayer([image, image.width - 400, 0, 200, 200, 'blue', 'defense'], cb);
+      _this.findPlayer([image, 0, image.height - 400, 200, 200, 'red', 'defense'], cb);
+      _this.findPlayer([image, image.width - 400, image.height - 400, 200, 200, 'red', 'offense'], cb);
+      image.onload = null;
       console.log('image loaded and analyzing started');
     };
     image.src = filename;
@@ -72,3 +77,6 @@ module.exports = {
     });
   }
 };
+
+
+module.exports = QrReader;
