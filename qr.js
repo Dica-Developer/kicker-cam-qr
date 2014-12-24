@@ -62,13 +62,13 @@ QrReader.prototype = {
     image.src = filename;
   },
 
-  start: function () {
+  start: function (cb) {
     var _this = this;
     console.time('grab qrcodes from video');
     //_this.loadImage('./kickerQrCodeTest10.png');
     exec('mplayer http://192.168.178.50:8080/ -endpos 00:00:01 -vo png', function (error, stdout, stderr) {
       console.timeEnd('grab qrcodes from video');
-      _this.loadImage('./00000001.png');
+      _this.loadImage('./00000001.png', cb);
       if (error !== null) {
         console.log(stdout);
         console.error(stderr);
