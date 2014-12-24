@@ -2,8 +2,6 @@ var Canvas = require('canvas');
 var Image = Canvas.Image;
 var qrcode = require('jsqrcode')(Canvas);
 var exec = require('child_process').exec;
-var game = null;
-
 
 module.exports = {
   findPlayer: function (item, cb) {
